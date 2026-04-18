@@ -173,7 +173,7 @@ export default function Dashboard() {
                             <Bell size={20} />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
-                        <div className="h-8 w-8 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-sm ring-2 ring-white cursor-pointer">
+                        <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm ring-2 ring-white cursor-pointer">
                             <User size={16} />
                         </div>
                     </div>
@@ -184,7 +184,7 @@ export default function Dashboard() {
                     <div className="max-w-6xl mx-auto space-y-8">
 
                         {/* WELCOME BANNER */}
-                        <div className="relative overflow-hidden rounded-2xl bg-indigo-900 text-white shadow-lg">
+                        <div className="relative overflow-hidden rounded-2xl bg-blue-500 text-white shadow-lg">
                             <div className="absolute top-0 right-0 p-12 opacity-10 blur-2xl pointer-events-none">
                                 <div className="w-64 h-64 bg-white rounded-full"></div>
                             </div>
@@ -224,7 +224,7 @@ export default function Dashboard() {
                                                     placeholder="What needs to be done?"
                                                     className="w-full pr-12 h-12 shadow-sm"
                                                 />
-                                                <Button type="submit" size="icon" className="absolute right-1 h-10 w-10 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">
+                                                <Button type="submit" size="icon" className="absolute right-1 h-10 w-10 rounded-md bg-blue-500 hover:bg-blue-600 text-white">
                                                     <Plus size={18} />
                                                 </Button>
                                             </form>

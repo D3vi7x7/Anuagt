@@ -6,7 +6,7 @@ import { connectDb } from "@/lib/db";
 
 export const POST = async (req) => {
 
-    const [email, password] = await req.json();
+    const { email, password } = await req.json();
 
     await connectDb();
 

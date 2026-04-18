@@ -11,9 +11,14 @@ export const POST = async (req) => {
     );
 
     const listsData = await listsRes.json();
-    const listId = listsData.value[0]?.id;
+    console.log("Lists Data:", listsData);
 
-    if (!listId) return Response.json([]);
+    const listId = listsData.value?.[0]?.id;
+
+    if (!listId) {
+        console.log("No List ID found, returning empty array.");
+        return Response.json([]);
+    }
 
     const tasksRes = await fetch(
         `https://graph.microsoft.com/v1.0/me/todo/lists/${listId}/tasks`,

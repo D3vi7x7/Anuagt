@@ -2,18 +2,16 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function LoginForm({ switchToRegister }) {
+export default function RegisterForm({ switchToLogin }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const router = useRouter();
 
-    const handleLogin = async () => {
-        const res = await fetch("/api/auth/login", {
+    const handleRegister = async () => {
+        await fetch("/api/auth/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -21,13 +19,8 @@ export default function LoginForm({ switchToRegister }) {
             body: JSON.stringify({ email, password }),
         });
 
-        const data = await res.json();
-
-        if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("role", data.role);
-            router.push("/dashboard");
-        }
+        alert("Registered! Now login.");
+        switchToLogin();
     };
 
     return (
@@ -36,7 +29,7 @@ export default function LoginForm({ switchToRegister }) {
                 width={800} height={800} />
             <Card className="absolute right-80 w-[450px] p-6 shadow-lg">
                 <CardContent className="space-y-4">
-                    <h1 className="text-2xl font-bold text-center">Login</h1>
+                    <h1 className="text-2xl font-bold text-center">Register</h1>
 
                     <Input
                         placeholder="Email"
@@ -49,17 +42,17 @@ export default function LoginForm({ switchToRegister }) {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <Button className="w-full" onClick={handleLogin}>
-                        Login
+                    <Button className="w-full" onClick={handleRegister}>
+                        Register
                     </Button>
 
                     <p className="text-sm text-center">
-                        Don't have an account?{" "}
+                        Already have an account?{" "}
                         <span
                             className="text-blue-500 cursor-pointer"
-                            onClick={switchToRegister}
+                            onClick={switchToLogin}
                         >
-                            Register
+                            Login
                         </span>
                     </p>
                 </CardContent>

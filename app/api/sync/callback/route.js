@@ -14,12 +14,15 @@ export const GET = async (req) => {
                 client_secret: process.env.MICROSOFT_CLIENT_SECRET,
                 code,
                 redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/sync/callback`,
+                scope: "Tasks.ReadWrite",
                 grant_type: "authorization_code",
             }),
         }
     );
 
     const data = await tokenRes.json();
+    console.log("Microsoft Token Response:", data);
+
     const accessToken = data.access_token;
 
     return Response.redirect(

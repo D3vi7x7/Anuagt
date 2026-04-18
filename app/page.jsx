@@ -17,7 +17,7 @@ export default function Page() {
           fill
           className="object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-t from-slate-900/90 via-slate-900/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900/90 via-slate-900/20 to-transparent" />
         <div className="absolute bottom-16 left-12 right-12 text-white z-10">
           <h2 className="text-4xl font-bold mb-4">Manage your tasks effortlessly</h2>
           <p className="text-lg opacity-90 font-light">Organize, track, and sync your to-dos with our beautiful dashboard.</p>

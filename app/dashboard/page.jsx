@@ -124,7 +124,7 @@ export default function Dashboard() {
     const hasData = tasks.length > 0;
     const engagements = hasData ? tasks.map(task => ({
         title: task.title,
-        time: task.createdAt,
+        time: new Date(task.createdAt).toLocaleDateString(),
         type: task.status
     })) : [];
 

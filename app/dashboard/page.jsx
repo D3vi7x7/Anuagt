@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle, Plus, User, Bell, Calendar, Home, ClipboardList, LogOut } from "lucide-react";
+import { CheckCircle2, Circle, Plus, User, Bell, Calendar, Home, ClipboardList, LogOut, Menu, X } from "lucide-react";
 
 export default function Dashboard() {
     const [tasks, setTasks] = useState([]);
@@ -13,6 +13,18 @@ export default function Dashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [msToken, setMsToken] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
+    // Close sidebar on window resize
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+                setIsSidebarOpen(false);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const router = useRouter();
 
     const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
@@ -130,11 +142,23 @@ export default function Dashboard() {
 
     return (
         <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
+            
+            {/* MOBILE OVERLAY */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* SIDEBAR */}
-            <div className="w-72 bg-white border-r border-slate-200 flex flex-col justify-between md:flex z-10 shadow-sm">
+            <div className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0 w-72 bg-white border-r border-slate-200 flex flex-col justify-between z-50 transition duration-200 ease-in-out shadow-sm`}>
                 <div>
-                    <div className="h-16 flex items-center px-8 border-b border-slate-100">
+                    <div className="h-16 flex items-center justify-between px-6 lg:px-8 border-b border-slate-100">
                         <h2 className="text-xl font-bold text-blue-500">Dashboard</h2>
+                        <button className="lg:hidden p-1 text-slate-400 hover:text-slate-600" onClick={() => setIsSidebarOpen(false)}>
+                            <X size={20} />
+                        </button>
                     </div>
                     <div className="p-4 space-y-1">
                         <Button variant="secondary" className="w-full justify-start gap-3 h-11 text-blue-600 hover:bg-blue-100 font-medium">
@@ -162,13 +186,16 @@ export default function Dashboard() {
             </div>
 
             {/* MAIN CONTENT */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden w-full">
                 {/* TOP HEADER */}
-                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 z-10">
-                    <div className="w-96">
-                        <Input placeholder="Search everything..." className="bg-slate-100 border-none h-10 focus-visible:ring-1 focus-visible:ring-indigo-500" />
+                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-10 z-10">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-md">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 transition-colors" onClick={() => setIsSidebarOpen(true)}>
+                            <Menu size={24} />
+                        </button>
+                        <Input placeholder="Search..." className="bg-slate-100 border-none h-10 w-full focus-visible:ring-1 focus-visible:ring-indigo-500" />
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 ml-4">
                         <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors">
                             <Bell size={20} />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
@@ -180,24 +207,24 @@ export default function Dashboard() {
                 </header>
 
                 {/* SCROLLABLE VIEW */}
-                <main className="flex-1 overflow-y-auto p-6 lg:p-10">
-                    <div className="max-w-6xl mx-auto space-y-8">
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
+                    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
 
                         {/* WELCOME BANNER */}
                         <div className="relative overflow-hidden rounded-2xl bg-blue-500 text-white shadow-lg">
                             <div className="absolute top-0 right-0 p-12 opacity-10 blur-2xl pointer-events-none">
                                 <div className="w-64 h-64 bg-white rounded-full"></div>
                             </div>
-                            <div className="relative z-10 p-8 sm:p-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                            <div className="relative z-10 p-6 sm:p-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                                 <div>
-                                    <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
-                                    <p className="text-indigo-200 font-light max-w-md">Here's a snapshot of your schedule. You have {tasks.filter(t => t.status !== 'completed').length} pending tasks to tackle today.</p>
+                                    <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back!</h1>
+                                    <p className="text-indigo-200 text-sm sm:text-base font-light max-w-md">Here's a snapshot of your schedule. You have {tasks.filter(t => t.status !== 'completed').length} pending tasks to tackle today.</p>
                                 </div>
                                 <Button
                                     onClick={msToken ? () => syncMicrosoft(msToken) : loginWithMicrosoft}
                                     disabled={isSyncing}
                                     variant="outline"
-                                    className="bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm whitespace-nowrap"
+                                    className="bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm whitespace-nowrap w-full sm:w-auto"
                                 >
                                     {isSyncing ? "Syncing..." : msToken ? "Refresh MS Tasks" : "Connect MS To Do"}
                                 </Button>

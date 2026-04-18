@@ -4,10 +4,10 @@ import { verifyToken } from "@/lib/auth";
 
 export const POST = async (req) => {
     await connectDb();
-    
+
     const token = req.headers.get("authorization");
     if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
-    
+
     let user;
     try {
         user = verifyToken(token);
@@ -43,10 +43,10 @@ export const POST = async (req) => {
     );
 
     const tasksData = await tasksRes.json();
-    
+
     if (tasksData.value && Array.isArray(tasksData.value)) {
-        // Bulk upsert into db
-        const bulkOps = tasksData.value.map(msTask => ({
+
+        const pushToDB = tasksData.value.map(msTask => ({
             updateOne: {
                 filter: { msTaskId: msTask.id, userId: user.id },
                 update: {
@@ -60,9 +60,9 @@ export const POST = async (req) => {
                 upsert: true
             }
         }));
-        
-        if (bulkOps.length > 0) {
-            await Task.bulkWrite(bulkOps);
+
+        if (pushToDB.length > 0) {
+            await Task.bulkWrite(pushToDB);
         }
     }
 

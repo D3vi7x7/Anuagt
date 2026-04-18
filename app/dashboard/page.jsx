@@ -122,10 +122,11 @@ export default function Dashboard() {
     };
 
     const hasData = tasks.length > 0;
-    const engagements = hasData ? [
-        { title: "Faculty Meeting", time: "10:00 AM", type: "meeting" },
-        { title: "Extra Class", time: "4:00 PM", type: "class" }
-    ] : [];
+    const engagements = hasData ? tasks.map(task => ({
+        title: task.title,
+        time: task.createdAt,
+        type: task.status
+    })) : [];
 
     return (
         <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
@@ -133,21 +134,21 @@ export default function Dashboard() {
             <div className="w-72 bg-white border-r border-slate-200 flex flex-col justify-between md:flex z-10 shadow-sm">
                 <div>
                     <div className="h-16 flex items-center px-8 border-b border-slate-100">
-                        <h2 className="text-xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Anugat Dashboard</h2>
+                        <h2 className="text-xl font-bold text-blue-500">Dashboard</h2>
                     </div>
                     <div className="p-4 space-y-1">
-                        <Button variant="secondary" className="w-full justify-start gap-3 h-11 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium">
+                        <Button variant="secondary" className="w-full justify-start gap-3 h-11 text-blue-600 hover:bg-blue-100 font-medium">
                             <Home size={18} /> Home
                         </Button>
-                        <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-slate-900">
+                        <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-blue-600">
                             <Calendar size={18} /> Timetable
                         </Button>
                         {role === "admin" && (
-                            <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-slate-900">
+                            <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-blue-600">
                                 <ClipboardList size={18} /> Invigilator Duty
                             </Button>
                         )}
-                        <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-slate-900">
+                        <Button variant="ghost" className="w-full justify-start gap-3 h-11 text-slate-600 hover:text-blue-600">
                             <Bell size={18} /> Requests
                         </Button>
                     </div>

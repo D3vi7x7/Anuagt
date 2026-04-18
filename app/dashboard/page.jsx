@@ -22,7 +22,10 @@ export default function Dashboard() {
             headers: { authorization: token },
         });
         const data = await res.json();
-        setTasks(data);
+        setTasks((prev) => {
+            const msTasks = prev.filter(t => t.isMsTask);
+            return [...data, ...msTasks];
+        });
     };
 
     const addTask = async () => {
@@ -58,7 +61,7 @@ export default function Dashboard() {
     }, []);
 
     const syncMicrosoft = async (msToken) => {
-        const res = await fetch("/api/sync", {
+        const res = await fetch("/api/microsoft-tasks", {
             method: "POST",
             body: JSON.stringify({ accessToken: msToken }),
         });
@@ -68,9 +71,13 @@ export default function Dashboard() {
         const formatted = data.map((t) => ({
             title: t.title,
             _id: t.id,
+            isMsTask: true
         }));
 
-        setTasks((prev) => [...prev, ...formatted]);
+        setTasks((prev) => {
+            const dbTasks = prev.filter(t => !t.isMsTask);
+            return [...dbTasks, ...formatted];
+        });
     };
 
     //Some examples

@@ -1,4 +1,20 @@
+import { connectDb } from "@/lib/db";
+import Task from "@/lib/models/Task";
+import { verifyToken } from "@/lib/auth";
+
 export const POST = async (req) => {
+    await connectDb();
+    
+    const token = req.headers.get("authorization");
+    if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    
+    let user;
+    try {
+        user = verifyToken(token);
+    } catch (e) {
+        return Response.json({ error: "Invalid token" }, { status: 401 });
+    }
+
     const { accessToken } = await req.json();
 
     const listsRes = await fetch(
@@ -11,13 +27,10 @@ export const POST = async (req) => {
     );
 
     const listsData = await listsRes.json();
-    console.log("Lists Data:", listsData);
-
     const listId = listsData.value?.[0]?.id;
 
     if (!listId) {
-        console.log("No List ID found, returning empty array.");
-        return Response.json([]);
+        return Response.json({ success: true, count: 0 });
     }
 
     const tasksRes = await fetch(
@@ -30,6 +43,28 @@ export const POST = async (req) => {
     );
 
     const tasksData = await tasksRes.json();
+    
+    if (tasksData.value && Array.isArray(tasksData.value)) {
+        // Bulk upsert into db
+        const bulkOps = tasksData.value.map(msTask => ({
+            updateOne: {
+                filter: { msTaskId: msTask.id, userId: user.id },
+                update: {
+                    $set: {
+                        title: msTask.title,
+                        msTaskId: msTask.id,
+                        userId: user.id,
+                        status: msTask.status === 'completed' ? 'completed' : 'pending'
+                    }
+                },
+                upsert: true
+            }
+        }));
+        
+        if (bulkOps.length > 0) {
+            await Task.bulkWrite(bulkOps);
+        }
+    }
 
-    return Response.json(tasksData.value);
+    return Response.json({ success: true, count: tasksData.value?.length || 0 });
 }

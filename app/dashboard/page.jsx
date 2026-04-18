@@ -42,7 +42,8 @@ export default function Dashboard() {
     };
 
     const loginWithMicrosoft = () => {
-        const url = `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_TENANT_ID}/oauth2/v2.0/authorize?client_id=${process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/sync/callback&scope=Tasks.Read&prompt=select_account`;
+        const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL}/api/sync/callback`;
+        const url = `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_TENANT_ID}/oauth2/v2.0/authorize?client_id=${process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=Tasks.ReadWrite&prompt=select_account`;
 
         window.location.href = url;
     };

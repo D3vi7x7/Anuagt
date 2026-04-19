@@ -38,62 +38,68 @@ export default function RegisterForm({ switchToLogin }) {
     };
 
     return (
-        <Card className="border-0 shadow-xl bg-white sm:border sm:shadow-sm">
-            <CardHeader className="space-y-2 text-center pb-6">
-                <CardTitle className="text-3xl font-bold tracking-tight">Create an account</CardTitle>
-                <CardDescription className="text-base">Enter your email below to create your account</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Input
-                            type="text"
-                            placeholder="Full Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="h-12"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Input
-                            type="email"
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="h-12"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-12"
-                        />
-                    </div>
-                    <Button 
-                        className="w-full h-11 text-base bg-slate-900 hover:bg-slate-800" 
+        <div className="w-full">
+            <div className="flex flex-col items-center text-center mb-10">
+                <div className="flex items-center mb-6">
+                    <span className="text-[32px] font-bold text-gray-900 tracking-tight">Anugat AI</span>
+                </div>
+
+                <div className="space-y-1 mb-5 w-full flex flex-col items-center">
+                    <h1 className="text-[42px] font-black text-black leading-tight tracking-[0]">JOIN</h1>
+                    <h1 className="text-[36px] sm:text-[46px] font-black text-blue-500 leading-tight uppercase tracking-tight whitespace-nowrap">SAMAYAK DASHBOARD!</h1>
+                </div>
+                
+                <p className="text-[#5f6368] font-medium text-[15px] mt-2">
+                    Enter your details below to create your account.
+                </p>
+            </div>
+            
+            <div className="space-y-5">
+                <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full h-[56px] rounded-2xl border border-[#e5e7eb] bg-white placeholder:text-gray-400 font-medium text-base px-5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full h-[56px] rounded-2xl border border-[#e5e7eb] bg-white placeholder:text-gray-400 font-medium text-base px-5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full h-[56px] rounded-2xl border border-[#e5e7eb] bg-white placeholder:text-gray-400 font-medium text-base px-5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+                
+                <div className="pt-2">
+                    <button 
+                        className="w-full h-[60px] text-[18px] font-medium rounded-2xl bg-blue-500 hover:opacity-95 transition-all shadow-[0_12px_24px_-10px_rgba(37,99,235,0.4)] text-white"
                         onClick={handleRegister}
                         disabled={isLoading}
                     >
-                        {isLoading ? "Creating account..." : "Sign Up"}
-                    </Button>
+                        {isLoading ? "Creating account..." : "Create Account"}
+                    </button>
                 </div>
+            </div>
 
-                <div className="text-center text-sm">
-                    <span className="text-muted-foreground pt-4 block">
-                        Already have an account?{" "}
-                        <button
-                            type="button"
-                            className="font-medium text-primary hover:text-primary/80 hover:underline transition-all"
-                            onClick={switchToLogin}
-                        >
-                            Sign in
-                        </button>
-                    </span>
-                </div>
-            </CardContent>
-        </Card>
+            <div className="text-center mt-12">
+                <span className="text-[#5f6368] font-medium text-[15px]">
+                    Already have an account?{" "}
+                    <button
+                        type="button"
+                        className="font-medium text-[#2563eb] hover:text-blue-700 transition-colors"
+                        onClick={switchToLogin}
+                    >
+                        Sign in
+                    </button>
+                </span>
+            </div>
+        </div>
     );
 }

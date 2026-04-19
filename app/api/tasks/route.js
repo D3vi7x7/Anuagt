@@ -32,13 +32,13 @@ export async function POST(req) {
         return Response.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const { title, msToken, dueDate } = await req.json();
+    const { title, msToken, dueDate, category = "task" } = await req.json();
 
     let msError = null;
     let msTaskId = undefined;
 
-    // Post to Microsoft To Do if token is provided
-    if (msToken) {
+    // Post to Microsoft To Do ONLY if token is provided and it's a standard task
+    if (msToken && category === "task") {
         try {
             const listsRes = await fetch("https://graph.microsoft.com/v1.0/me/todo/lists", {
                 headers: { Authorization: `Bearer ${msToken}` }
@@ -101,7 +101,8 @@ export async function POST(req) {
         userId: user.id,
         msTaskId,
         status: "pending",
-        dueDate: dueDate ? new Date(dueDate) : undefined
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        category
     });
 
     return Response.json({ ...task.toObject(), msError });

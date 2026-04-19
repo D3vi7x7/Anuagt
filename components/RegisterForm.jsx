@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function RegisterForm({ switchToLogin }) {
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function RegisterForm({ switchToLogin }) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ name, email, password }),
             });
 
             if (res.ok) {
@@ -44,6 +45,15 @@ export default function RegisterForm({ switchToLogin }) {
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Input
+                            type="text"
+                            placeholder="Full Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="h-12"
+                        />
+                    </div>
                     <div className="space-y-2">
                         <Input
                             type="email"

@@ -12,13 +12,23 @@ export default function Dashboard() {
     const [tasks, setTasks] = useState([]);
     const [title, setTitle] = useState("");
     const [dueDate, setDueDate] = useState("");
+
+    // Quiz/Meeting scheduling state
+    const [quizTitle, setQuizTitle] = useState("");
+    const [quizDate, setQuizDate] = useState("");
+    const [isAddingQuiz, setIsAddingQuiz] = useState(false);
+    const [meetingTitle, setMeetingTitle] = useState("");
+    const [meetingDate, setMeetingDate] = useState("");
+    const [isAddingMeeting, setIsAddingMeeting] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [msToken, setMsToken] = useState(null);
+    const [userName, setUserName] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isInvigilatorOpen, setIsInvigilatorOpen] = useState(false);
 
-    const invigilationDuties = [
+    const Duties = [
         { id: 1, room: "Hall B", date: "Oct 25, 2026", time: "09:00 AM - 12:00 PM" },
         { id: 2, room: "Room 104", date: "Oct 28, 2026", time: "02:00 PM - 05:00 PM" },
         { id: 3, room: "Lab 3", date: "Nov 02, 2026", time: "10:00 AM - 01:00 PM" }
@@ -43,6 +53,13 @@ export default function Dashboard() {
         if (!token) {
             router.push("/");
             return;
+        }
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.name) setUserName(payload.name);
+        } catch (e) {
+            console.error("Token parse error");
         }
 
         let currentMsToken = localStorage.getItem("msToken");
@@ -112,6 +129,43 @@ export default function Dashboard() {
         }
     };
 
+    const addEngagement = async (e, type) => {
+        e?.preventDefault();
+
+        const engagementTitle = type === "quiz" ? quizTitle : meetingTitle;
+        const engagementDate = type === "quiz" ? quizDate : meetingDate;
+
+        if (!engagementTitle.trim()) return;
+
+        try {
+            await fetch("/api/tasks", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: token,
+                },
+                body: JSON.stringify({
+                    title: engagementTitle,
+                    dueDate: engagementDate || undefined,
+                    category: type
+                }),
+            });
+
+            if (type === "quiz") {
+                setQuizTitle("");
+                setQuizDate("");
+                setIsAddingQuiz(false);
+            } else {
+                setMeetingTitle("");
+                setMeetingDate("");
+                setIsAddingMeeting(false);
+            }
+            fetchTasks();
+        } catch (error) {
+            console.error(`Failed to add ${type}`, error);
+        }
+    };
+
     const toggleTaskLocal = async (id) => {
         const task = tasks.find(t => t._id === id);
         if (!task) return;
@@ -170,16 +224,19 @@ export default function Dashboard() {
         }
     };
 
+    const regularTasks = tasks.filter(t => !t.category || t.category === "task");
+    const pendingEngagements = tasks.filter(t => (t.category === "quiz" || t.category === "meeting") && t.status !== "completed");
+
     let flag = false;
     let completeCount = 0;
 
-    for (const t of tasks) {
+    for (const t of regularTasks) {
         if (t.status === "completed") {
             completeCount++;
         }
     }
 
-    flag = completeCount === tasks.length ? true : false;
+    flag = completeCount === regularTasks.length && regularTasks.length > 0;
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -271,8 +328,8 @@ export default function Dashboard() {
                                 {/* Welcome Banner */}
                                 <div className="relative overflow-hidden rounded-[30px] bg-blue-500 text-white p-8 sm:p-10 flex flex-col sm:flex-row justify-between items-center h-auto sm:h-[180px] z-10 shadow-sm">
                                     <div className="relative z-10 w-full flex flex-col justify-center h-full pt-1">
-                                        <h1 className="text-[30px] sm:text-[30px] leading-tight font-bold mb-1 tracking-tight">Welcome Madhav!</h1>
-                                        <p className="text-white/90 text-[12px] sm:text-[12px] font-medium w-full max-w-[340px] mb-6 leading-relaxed hidden sm:block">Count on me to support you, organize your tasks, and make your workday smoother.</p>
+                                        <h1 className="text-[30px] sm:text-[30px] leading-tight font-bold mb-1 tracking-tight">Welcome {userName}!</h1>
+                                        <p className="text-white/90 text-[12px] sm:text-[14px] font-medium w-full max-w-[340px] mb-2 leading-relaxed hidden sm:block">Count on me to support you, organize your tasks, and make your workday smoother.</p>
                                         <div className="flex gap-3 mt-auto flex-wrap">
                                             <Button className="bg-white text-blue-600 hover:bg-slate-50 rounded-xl h-10 px-5 font-bold flex items-center gap-2 shadow-sm text-[14px]">
                                                 <CheckCircle2 size={18} className="text-blue-500" strokeWidth={2.5} /> Manage tasks
@@ -299,18 +356,40 @@ export default function Dashboard() {
                                             <Edit3 size={24} strokeWidth={2.2} /> Today's Engagement
                                         </div>
                                     </div>
-                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 h-full">
-                                        <div className="relative w-full sm:w-1/2 h-[160px] sm:h-[190px]">
-                                            <Image src="/task_illus.png" alt="Relaxing" fill className="object-contain sm:object-left" />
+
+                                    {pendingEngagements.length > 0 ? (
+                                        <div className="flex flex-col h-full overflow-y-auto pr-2 custom-scrollbar space-y-2 mt-2">
+                                            {pendingEngagements.map(e => (
+                                                <div key={e._id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100/50 hover:bg-slate-100 transition-colors">
+                                                    <button onClick={() => toggleTaskLocal(e._id)} className="mt-0.5 shrink-0 transition-transform active:scale-95 text-slate-300 hover:text-blue-500">
+                                                        <Circle size={22} strokeWidth={2.5} />
+                                                    </button>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`text-[10px] font-bold tracking-wider uppercase inline-block px-2 py-0.5 rounded-md ${e.category === 'quiz' ? 'text-indigo-600 bg-indigo-50' : 'text-emerald-600 bg-emerald-50'}`}>
+                                                                {e.category}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[16px] font-semibold text-slate-800">{e.title}</p>
+                                                        {e.dueDate && <p className="text-[13px] font-medium text-slate-500 mt-1.5 flex items-center gap-1.5"><Calendar size={13} /> {new Date(e.dueDate).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="text-center sm:text-right w-full sm:w-1/2 flex flex-col justify-center">
-                                            <p className="text-[16px] sm:text-[18px] font-medium text-slate-800 leading-[1.4] mb-6">It's a holiday today! No engagements scheduled. Enjoy your day off.</p>
-                                            <div className="flex gap-3 justify-center sm:justify-end flex-wrap">
-                                                <Button className="bg-black text-white hover:bg-slate-800 rounded-[14px] h-[40px] sm:h-[42px] px-4 sm:px-5 text-[13px] sm:text-[14px] font-semibold shadow-md whitespace-nowrap">Weekly Schedule</Button>
-                                                <Button className="bg-black text-white hover:bg-slate-800 rounded-[14px] h-[40px] sm:h-[42px] px-4 sm:px-5 text-[13px] sm:text-[14px] font-semibold shadow-md whitespace-nowrap">Share Schedule</Button>
+                                    ) : (
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 h-full">
+                                            <div className="relative w-full sm:w-1/2 h-[160px] sm:h-[190px]">
+                                                <Image src="/task_illus.png" alt="Relaxing" fill className="object-contain sm:object-left" />
+                                            </div>
+                                            <div className="text-center sm:text-right w-full sm:w-1/2 flex flex-col justify-center">
+                                                <p className="text-[16px] sm:text-[18px] font-medium text-slate-800 leading-[1.4] mb-6">It's a holiday today! No engagements scheduled. Enjoy your day off.</p>
+                                                <div className="flex gap-3 justify-center sm:justify-end flex-wrap">
+                                                    <Button className="bg-black text-white hover:bg-slate-800 rounded-[14px] h-[40px] sm:h-[42px] px-4 sm:px-5 text-[13px] sm:text-[14px] font-semibold shadow-md whitespace-nowrap">Weekly Schedule</Button>
+                                                    <Button className="bg-black text-white hover:bg-slate-800 rounded-[14px] h-[40px] sm:h-[42px] px-4 sm:px-5 text-[13px] sm:text-[14px] font-semibold shadow-md whitespace-nowrap">Share Schedule</Button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </Card>
 
                                 {/* Bottom row: Quiz Scheduler & Meetings */}
@@ -324,12 +403,52 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                         <div className="flex-1 flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-                                            <div className="relative w-[100px] sm:w-[120px] h-[100px] sm:h-[120px] shrink-0 mx-auto sm:mx-0">
+                                            {pendingEngagements.length === 0 && pendingEngagements.filter(e => e.category === "quiz").length === 0 ? <div className="relative w-[100px] sm:w-[120px] h-[100px] sm:h-[120px] shrink-0 mx-auto sm:mx-0">
                                                 <Image src="/quiz_illus.png" alt="Quiz" fill className="object-contain object-center sm:object-left" />
-                                            </div>
-                                            <div className="flex flex-col items-center sm:items-end gap-3.5 flex-1 text-center sm:text-right">
-                                                <p className="font-semibold text-slate-800 text-[15px] sm:text-[16px] italic leading-tight">"No Quizzes<br className="hidden sm:block" /> Scheduled"</p>
-                                                <Button className="bg-[#1e293b] text-white hover:bg-black rounded-xl h-[34px] px-4 text-[13px] font-semibold w-full sm:w-auto"><Plus size={16} strokeWidth={3} className="mr-1.5" /> Schedule Now</Button>
+                                            </div> : <div></div>}
+                                            <div className="flex flex-col items-center sm:items-end gap-3.5 flex-1 w-full text-center sm:text-right">
+                                                {isAddingQuiz ? (
+                                                    <form onSubmit={(e) => addEngagement(e, "quiz")} className="w-full flex flex-col gap-2">
+                                                        <Input autoFocus value={quizTitle} onChange={(e) => setQuizTitle(e.target.value)} placeholder="Quiz topic..." className="h-[36px] bg-slate-50 border-slate-200 text-[14px] rounded-xl" />
+                                                        <div className="flex gap-2">
+                                                            <Input type="datetime-local" value={quizDate} onChange={(e) => setQuizDate(e.target.value)} className="h-[36px] bg-slate-50 border-slate-200 text-[12px] flex-1 rounded-xl px-2" />
+                                                            <Button type="submit" className="h-[36px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-3 font-semibold shadow-sm">Save</Button>
+                                                            <Button type="button" onClick={() => setIsAddingQuiz(false)} variant="ghost" className="h-[36px] text-slate-500 hover:bg-slate-100 rounded-xl px-2"><X size={18} /></Button>
+                                                        </div>
+                                                    </form>
+                                                ) : (
+                                                    <>
+                                                        {pendingEngagements.length > 0 && pendingEngagements.filter(e => e.category === "quiz").length > 0 ? (
+                                                            pendingEngagements.map(e => e.category === "quiz" && (
+                                                                <div key={e._id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-all group w-full">
+                                                                    <button onClick={() => toggleTaskLocal(e._id)} className="mt-0.5 text-slate-300 hover:text-blue-500 transition-colors shrink-0">
+                                                                        {e.status === 'completed' ? <CheckCircle2 className="text-blue-500" size={22} strokeWidth={2.5} /> : <Circle size={22} strokeWidth={2.5} />}
+                                                                    </button>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                                                            <h3 className={`font-semibold text-slate-800 text-[15px] sm:text-[16px] leading-tight ${e.status === 'completed' ? 'line-through text-slate-400' : ''}`}>{e.title}</h3>
+                                                                            {e.dueDate && (
+                                                                                <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap flex items-center gap-1">
+                                                                                    <Calendar size={12} /> {new Date(e.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex items-center justify-between gap-2 mt-1">
+                                                                            <span className="text-[11px] text-slate-500 font-medium capitalize">{e.category}</span>
+                                                                            <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                <button onClick={() => toggleTaskLocal(e._id)} className="text-slate-400 hover:text-blue-500"><CheckCircle2 size={18} strokeWidth={2.5} /></button>
+
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <p className="font-semibold text-slate-800 text-[15px] sm:text-[16px] italic leading-tight">"No Quizzes<br className="hidden sm:block" /> Scheduled"</p>
+                                                        )}
+                                                        <Button onClick={() => setIsAddingQuiz(true)} className="bg-[#1e293b] text-white hover:bg-black rounded-xl h-[34px] px-4 text-[13px] font-semibold w-full sm:w-auto"><Plus size={16} strokeWidth={3} className="mr-1.5" /> Schedule Now</Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>
@@ -343,12 +462,50 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                         <div className="flex-1 flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-                                            <div className="relative w-[100px] sm:w-[120px] h-[100px] sm:h-[120px] shrink-0 mx-auto sm:mx-0">
+                                            {pendingEngagements.length === 0 && pendingEngagements.filter(e => e.category === "meeting").length === 0 ? <div className="relative w-[100px] sm:w-[120px] h-[100px] sm:h-[120px] shrink-0 mx-auto sm:mx-0">
                                                 <Image src="/meeting_illus.png" alt="Meetings" fill className="object-contain object-center sm:object-left" />
-                                            </div>
-                                            <div className="flex flex-col items-center sm:items-end gap-3.5 flex-1 text-center sm:text-right">
-                                                <p className="font-semibold text-slate-800 text-[15px] sm:text-[16px] italic leading-tight">"No Meetings<br className="hidden sm:block" /> Scheduled"</p>
-                                                <Button className="bg-[#1e293b] text-white hover:bg-black rounded-xl h-[34px] px-4 text-[13px] font-semibold w-full sm:w-auto"><Plus size={16} strokeWidth={3} className="mr-1.5" /> Schedule Now</Button>
+                                            </div> : <div></div>}
+                                            <div className="flex flex-col items-center sm:items-end gap-3.5 flex-1 w-full text-center sm:text-right">
+                                                {isAddingMeeting ? (
+                                                    <form onSubmit={(e) => addEngagement(e, "meeting")} className="w-full flex flex-col gap-2">
+                                                        <Input autoFocus value={meetingTitle} onChange={(e) => setMeetingTitle(e.target.value)} placeholder="Meeting agenda..." className="h-[36px] bg-slate-50 border-slate-200 text-[14px] rounded-xl" />
+                                                        <div className="flex gap-2">
+                                                            <Input type="datetime-local" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="h-[36px] bg-slate-50 border-slate-200 text-[12px] flex-1 rounded-xl px-2" />
+                                                            <Button type="submit" className="h-[36px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-3 font-semibold shadow-sm">Save</Button>
+                                                            <Button type="button" onClick={() => setIsAddingMeeting(false)} variant="ghost" className="h-[36px] text-slate-500 hover:bg-slate-100 rounded-xl px-2"><X size={18} /></Button>
+                                                        </div>
+                                                    </form>
+                                                ) : (
+                                                    <>
+                                                        {pendingEngagements.filter(e => e.category === "meeting").length > 0 ? (
+                                                            pendingEngagements.filter(e => e.category === "meeting").map(e => (
+                                                                <div key={e._id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-all group w-full">
+                                                                    <button onClick={() => toggleTaskLocal(e._id)} className="mt-0.5 text-slate-300 hover:text-blue-500 transition-colors shrink-0">
+                                                                        {e.status === 'completed' ? <CheckCircle2 className="text-blue-500" size={22} strokeWidth={2.5} /> : <Circle size={22} strokeWidth={2.5} />}
+                                                                    </button>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                                                            <h3 className={`font-semibold text-slate-800 text-[15px] sm:text-[16px] leading-tight ${e.status === 'completed' ? 'line-through text-slate-400' : ''}`}>{e.title}</h3>
+                                                                            {e.dueDate && (
+                                                                                <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap flex items-center gap-1">
+                                                                                    <Calendar size={12} /> {new Date(e.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className="text-[13px] text-slate-500 font-medium mt-0.5">Meeting</p>
+                                                                    </div>
+
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <>
+                                                                <p className="font-semibold text-slate-800 text-[15px] sm:text-[16px] italic leading-tight">"No Meetings<br className="hidden sm:block" /> Scheduled"</p>
+
+                                                            </>
+                                                        )}
+                                                        <Button onClick={() => setIsAddingMeeting(true)} className="bg-[#1e293b] text-white hover:bg-black rounded-xl h-[34px] px-4 text-[13px] font-semibold w-full sm:w-auto"><Plus size={16} strokeWidth={3} className="mr-1.5" /> Schedule Now</Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>
@@ -377,8 +534,8 @@ export default function Dashboard() {
                                         </div>
                                     </form>
 
-                                    {(tasks.length > 0 && !flag) ? <div className="max-h-[220px] overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
-                                        {tasks.length > 0 ? tasks.map((t) => (
+                                    {(regularTasks.length > 0 && !flag) ? <div className="max-h-[220px] overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
+                                        {regularTasks.length > 0 ? regularTasks.map((t) => (
                                             <div key={t._id} className={`flex items-start gap-3.5 p-3.5 hover:bg-slate-50/80 border border-transparent hover:border-slate-100 rounded-2xl transition-all group ${t.status === 'completed' ? 'opacity-50 grayscale-[50%]' : ''}`}>
                                                 <button onClick={() => toggleTaskLocal(t._id)} className="mt-0.5 text-slate-300 hover:text-blue-500 transition-colors shrink-0">
                                                     {t.status === 'completed' ? <CheckCircle2 className="text-blue-500" size={22} strokeWidth={2.5} /> : <Circle size={22} strokeWidth={2.5} />}
@@ -422,14 +579,14 @@ export default function Dashboard() {
 
                                     {/* Cards */}
                                     <div className="absolute bottom-[20px] left-0 w-full px-4 z-0 flex flex-col gap-2 items-center pointer-events-none">
-                                        {invigilationDuties.map((duty, idx) => (
+                                        {Duties.map((duty, idx) => (
                                             <div
                                                 key={duty.id}
                                                 className="w-[90%] bg-blue-500 rounded-2xl shadow-lg border p-4 transition-all duration-500 absolute origin-bottom"
                                                 style={{
                                                     transform: isInvigilatorOpen
-                                                        ? `translateY(-${(invigilationDuties.length - idx) * 65 + 150}px) scale(1)`
-                                                        : `translateY(10px) scale(${1 - (invigilationDuties.length - idx) * 0.05})`,
+                                                        ? `translateY(-${(Duties.length - idx) * 65 + 150}px) scale(1)`
+                                                        : `translateY(10px) scale(${1 - (Duties.length - idx) * 0.05})`,
                                                     opacity: isInvigilatorOpen ? 1 : 0,
                                                     transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
                                                     transitionDelay: isInvigilatorOpen ? `${idx * 40}ms` : "0ms",

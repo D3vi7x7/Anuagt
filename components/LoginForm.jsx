@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import gsap from "gsap";
 
 export default function LoginForm({ switchToRegister }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+
 
     const handleLogin = async () => {
         setIsLoading(true);
@@ -49,7 +48,7 @@ export default function LoginForm({ switchToRegister }) {
 
                 <div className="space-y-1 mb-5">
                     <h1 className="text-[42px] font-black text-black leading-tight tracking-[0]">WELCOME TO</h1>
-                    <h1 className="text-[52px] whitespace-nowrap font-black text-blue-500 leading-tight uppercase tracking-[0]">SAMAYAK DASHBOARD!</h1>
+                    <h1 className="text-[42px] whitespace-nowrap font-black text-blue-500 leading-tight uppercase tracking-[0]">SAMAYAK DASHBOARD!</h1>
                 </div>
 
                 <p className="text-[#5f6368] font-medium text-[15px] mt-2">

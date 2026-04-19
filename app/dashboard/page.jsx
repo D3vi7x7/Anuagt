@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Circle, Plus, User, Bell, Calendar, Home, ClipboardList, LogOut, Menu, X, Edit3, ArrowUpRight, FolderHeart, MailPlus, FileText, Users } from "lucide-react";
 import Image from "next/image";
+import gsap from "gsap";
 
 export default function Dashboard() {
     const [tasks, setTasks] = useState([]);
@@ -27,6 +28,8 @@ export default function Dashboard() {
     const [userName, setUserName] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isInvigilatorOpen, setIsInvigilatorOpen] = useState(false);
+
+    const containerRef = useRef(null);
 
     const Duties = [
         { id: 1, room: "Hall B", date: "Oct 25, 2026", time: "09:00 AM - 12:00 PM" },
@@ -82,6 +85,18 @@ export default function Dashboard() {
             fetchTasks();
         }
     }, [token, router]);
+
+    // GSAP animations
+    useEffect(() => {
+        let ctx = gsap.context(() => {
+            gsap.from(".dash-anim-left", { x: -60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" });
+            gsap.from(".dash-anim-right", { x: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out", delay: 0.2 });
+            gsap.from(".dash-anim-bottom", { y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out", delay: 0.4 });
+
+            gsap.from(".clockImg", { y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out", delay: 0.4 });
+        }, containerRef);
+        return () => ctx.revert();
+    }, []);
 
     const fetchTasks = async () => {
         setIsLoading(true);
@@ -257,7 +272,7 @@ export default function Dashboard() {
             )}
 
             {/* SIDEBAR */}
-            <div className={`fixed inset-y-5 left-2 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-[120%]"} lg:relative lg:translate-x-0 w-[280px] bg-white rounded-[30px] flex flex-col justify-between z-50 transition duration-200 ease-in-out shadow-sm py-8 px-5 shrink-0`}>
+            <div className={`fixed inset-y-5 top-0 left-2 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-[120%]"} lg:relative lg:translate-x-0 w-[280px] bg-white rounded-[30px] flex flex-col justify-between z-50 transition duration-200 ease-in-out shadow-sm py-8 px-5 shrink-0`}>
                 <div>
                     <div className="flex items-center gap-3 px-3 mb-10">
                         <h2 className="text-xl font-bold tracking-tight">Anugat AI</h2>
@@ -320,13 +335,13 @@ export default function Dashboard() {
                 </header>
 
                 {/* SCROLLABLE VIEW */}
-                <main className="flex-1 overflow-y-auto pb-4 pr-2 scrollbar-hide">
+                <main className="flex-1 overflow-y-auto pb-4 pr-2 scrollbar-hide" ref={containerRef}>
                     <div className="w-full space-y-5">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* LEFT & CENTER COLUMN */}
                             <div className="flex flex-col gap-6 lg:col-span-2">
                                 {/* Welcome Banner */}
-                                <div className="relative overflow-hidden rounded-[30px] bg-blue-500 text-white p-8 sm:p-10 flex flex-col sm:flex-row justify-between items-center h-auto sm:h-[180px] z-10 shadow-sm">
+                                <div className="dash-anim-left relative overflow-hidden rounded-[30px] bg-blue-500 text-white p-8 sm:p-10 flex flex-col sm:flex-row justify-between items-center h-auto sm:h-[180px] z-10 shadow-sm">
                                     <div className="relative z-10 w-full flex flex-col justify-center h-full pt-1">
                                         <h1 className="text-[30px] sm:text-[30px] leading-tight font-bold mb-1 tracking-tight">Welcome {userName}!</h1>
                                         <p className="text-white/90 text-[12px] sm:text-[14px] font-medium w-full max-w-[340px] mb-2 leading-relaxed hidden sm:block">Count on me to support you, organize your tasks, and make your workday smoother.</p>
@@ -346,11 +361,11 @@ export default function Dashboard() {
                                             </Button>
                                         </div>
                                     </div>
-                                    <Image src="/clock.png" className="w-[140px] sm:w-[260px] h-auto drop-shadow-2xl absolute right-[-10px] top-[20px] sm:right-3 sm:top-[150px] sm:-translate-y-1/2 opacity-20 sm:opacity-100 pointer-events-none" alt="Clock" width={400} height={400} priority />
+                                    <Image src="/clock.png" className="clockImg w-[140px] sm:w-[260px] h-auto drop-shadow-2xl absolute right-[-10px] top-[20px] sm:right-3 sm:top-[150px] sm:-translate-y-1/2 opacity-20 sm:opacity-100 pointer-events-none" alt="Clock" width={400} height={400} priority />
                                 </div>
 
                                 {/* Today's Engagement */}
-                                <Card className="border-none shadow-sm rounded-[30px] bg-white overflow-hidden p-6 sm:p-8 relative flex-1 min-h-[220px] flex flex-col">
+                                <Card className="dash-anim-left border-none shadow-sm rounded-[30px] bg-white overflow-hidden p-6 sm:p-8 relative flex-1 max-h-[280px] flex flex-col">
                                     <div className="flex justify-between items-center mb-4">
                                         <div className="flex gap-2.5 items-center text-[20px] sm:text-[22px] font-bold text-slate-800">
                                             <Edit3 size={24} strokeWidth={2.2} /> Today's Engagement
@@ -394,7 +409,7 @@ export default function Dashboard() {
 
                                 {/* Bottom row: Quiz Scheduler & Meetings */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <Card className="rounded-[30px] border-none shadow-sm p-6 relative bg-white min-h-[200px] flex flex-col">
+                                    <Card className="dash-anim-bottom rounded-[30px] border-none shadow-sm p-6 relative bg-white min-h-[200px] flex flex-col">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-[18px] sm:text-[19px] font-bold flex gap-2.5 items-center text-slate-800"><FileText size={20} strokeWidth={2.2} /> Quiz Scheduler</h3>
                                             <div className="flex gap-2">
@@ -453,7 +468,7 @@ export default function Dashboard() {
                                         </div>
                                     </Card>
 
-                                    <Card className="rounded-[30px] border-none shadow-sm p-6 relative bg-white min-h-[200px] flex flex-col">
+                                    <Card className="dash-anim-bottom rounded-[30px] border-none shadow-sm p-6 relative bg-white min-h-[200px] flex flex-col">
                                         <div className="flex justify-between items-center mb-4">
                                             <h3 className="text-[18px] sm:text-[19px] font-bold flex gap-2.5 items-center text-slate-800"><Users size={20} strokeWidth={2.2} /> Meetings</h3>
                                             <div className="flex gap-2">
@@ -515,10 +530,10 @@ export default function Dashboard() {
                             {/* RIGHT COLUMN */}
                             <div className="flex flex-col gap-6 lg:col-span-1">
                                 {/* Today's Focus */}
-                                <Card className="rounded-[30px] border-none shadow-sm p-6 sm:p-8 bg-white min-h-[400px] flex flex-col relative">
-                                    <h3 className="text-[18px] sm:text-[20px] font-bold flex gap-2.5 items-center text-slate-800 mb-6"><Image src="/todo_logo.png" alt="Tasks" width={30} height={30} className="object-contain object-center sm:object-left" /> Today's Focus</h3>
+                                <Card className="dash-anim-right rounded-[30px] border-none shadow-sm p-5 sm:p-6 bg-white min-h-[300px] flex flex-col relative">
+                                    <h3 className="text-[18px] sm:text-[20px] font-bold flex gap-2.5 items-center text-slate-800 mb-4"><Image src="/todo_logo.png" alt="Tasks" width={30} height={30} className="object-contain object-center sm:object-left" /> Today's Focus</h3>
 
-                                    <form onSubmit={addTask} className="flex flex-col gap-3 mb-6 shrink-0">
+                                    <form onSubmit={addTask} className="flex flex-col gap-3 mb-4 shrink-0">
                                         <div className="relative flex items-center">
                                             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What needs to be done?" className="w-full pr-[52px] h-[48px] bg-[#f8fafc] border border-slate-100 rounded-2xl focus-visible:ring-1 focus-visible:ring-blue-500 font-medium text-[15px]" />
                                             <Button type="submit" size="icon" className="absolute right-1.5 h-[36px] w-[36px] rounded-xl bg-blue-500 hover:bg-blue-600 text-white shadow-sm"><Plus size={18} strokeWidth={2.5} /></Button>
@@ -534,7 +549,7 @@ export default function Dashboard() {
                                         </div>
                                     </form>
 
-                                    {(regularTasks.length > 0 && !flag) ? <div className="max-h-[220px] overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
+                                    {(regularTasks.length > 0 && !flag) ? <div className="max-h-[160px] overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
                                         {regularTasks.length > 0 ? regularTasks.map((t) => (
                                             <div key={t._id} className={`flex items-start gap-3.5 p-3.5 hover:bg-slate-50/80 border border-transparent hover:border-slate-100 rounded-2xl transition-all group ${t.status === 'completed' ? 'opacity-50 grayscale-[50%]' : ''}`}>
                                                 <button onClick={() => toggleTaskLocal(t._id)} className="mt-0.5 text-slate-300 hover:text-blue-500 transition-colors shrink-0">
@@ -551,10 +566,10 @@ export default function Dashboard() {
                                         )) : <div className="text-center py-8 text-[15px] font-medium text-slate-400">All tasks completed.</div>}
                                     </div> :
                                         <div className="flex-1 flex flex-col items-center justify-center text-center">
-                                            <div className="relative w-[160px] sm:w-[200px] h-[140px] sm:h-[180px] mb-6">
+                                            <div className="relative w-[140px] sm:w-[160px] h-[100px] sm:h-[120px] mb-4">
                                                 <Image src="/todo_illus.png" alt="To Do Focus" fill className="object-contain" priority />
                                             </div>
-                                            <p className="font-semibold text-slate-800 mb-6 w-full max-w-[240px] leading-[1.4] text-[15px] sm:text-[16px]">Power your planning with Microsoft To Do, built right into your workspace.</p>
+                                            <p className="font-semibold text-slate-800 mb-4 w-full max-w-[240px] leading-[1.4] text-[14px]">Power your planning with Microsoft To Do, built right into your workspace.</p>
 
                                             <Button
                                                 onClick={msToken ? () => syncMicrosoft(msToken) : loginWithMicrosoft}
@@ -568,7 +583,7 @@ export default function Dashboard() {
 
                                 {/* Invigilator Duty */}
                                 <div
-                                    className="relative min-h-[220px] flex-1 mt-6 px-1 drop-shadow-sm flex flex-col justify-end cursor-pointer group"
+                                    className="dash-anim-right relative min-h-[220px] flex-1 px-1 drop-shadow-sm flex flex-col justify-end cursor-pointer group"
                                     onClick={() => setIsInvigilatorOpen(!isInvigilatorOpen)}
                                 >
                                     {/* Folder Back Tab */}
